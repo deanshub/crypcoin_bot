@@ -3,6 +3,18 @@ const TelegramBot = require('node-telegram-bot-api');
 
 const token = process.env.token;
 
+const defaultOptions = {
+    reply_markup: {
+        keyboard: [
+            return {
+                text: '/get',
+                callback_data: '/get',
+            };
+        ],
+        resize_keyboard: true,
+        one_time_keyboard: true
+    },
+};
 
 const bitsmapUrls =  {
     'Bitcoin': {
@@ -32,7 +44,7 @@ const bot = new TelegramBot(token, {polling: true});
 bot.onText(/\/help/, function (msg) {
     const fromId = msg.from.id;
     const resp = 'no';
-    bot.sendMessage(fromId, resp);
+    bot.sendMessage(fromId, resp, defaultOptions);
 });
 
 function getCoinsOptions(rootObject) {
@@ -60,7 +72,7 @@ bot.onText(/\/get/, function (msg) {
         bot.once("message", answer => {
             const crypcoin = answer.text;  
             if (Object.keys(bitsmapUrls).indexOf(crypcoin) === -1) {
-                bot.sendMessage(fromId, "Unbale to detect coin");
+                bot.sendMessage(fromId, "Unbale to detect coin", defaultOptions);
             } else {
                 const crypcoinChoice = bitsmapUrls[crypcoin];
                 const coinOptions = getCoinsOptions(crypcoinChoice);
@@ -70,16 +82,16 @@ bot.onText(/\/get/, function (msg) {
                         bot.once("message", answer => {
                             const coin = answer.text;
                             if (Object.keys(crypcoinChoice).indexOf(coin) === -1) {
-                                bot.sendMessage(fromId, "Unbale to detect coin");
+                                bot.sendMessage(fromId, "Unbale to detect coin", defaultOptions);
                             } else {
                                 const url = crypcoinChoice[coin];
                                 const isNis = coin === 'NIS';
                                 getBitcoinPrice(url, isNis).then((lastPrice) => {
-                                    bot.sendMessage(fromId, lastPrice);
+                                    bot.sendMessage(fromId, lastPrice, defaultOptions);
                                 }).catch((error) => {
                                     const errorMessage = 'An error has occured';
                                     console.log(error);
-                                    bot.sendMessage(fromId, errorMessage);
+                                    bot.sendMessage(fromId, errorMessage, defaultOptions);
                                 });
                             }
                     });
