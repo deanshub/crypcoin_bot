@@ -6,10 +6,10 @@ const token = process.env.token;
 const defaultOptions = {
     reply_markup: {
         keyboard: [
-            return {
+            [{
                 text: '/get',
                 callback_data: '/get',
-            };
+            }]
         ],
         resize_keyboard: true,
         one_time_keyboard: true
