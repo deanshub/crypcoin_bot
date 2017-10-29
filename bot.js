@@ -3,19 +3,6 @@ const TelegramBot = require('node-telegram-bot-api');
 
 const token = process.env.token;
 
-const defaultOptions = {
-    reply_markup: {
-        keyboard: [
-            [{
-                text: '/get',
-                callback_data: '/get',
-            }]
-        ],
-        resize_keyboard: true,
-        one_time_keyboard: true
-    },
-};
-
 const bitsmapUrls =  {
     'Bitcoin': {
         'USD': 'https://www.bitstamp.net/api/v2/ticker/btcusd/',
@@ -36,6 +23,24 @@ const bitsmapUrls =  {
         'USD': 'https://www.bitstamp.net/api/v2/ticker/ltcusd/',
         'EUR': 'https://www.bitstamp.net/api/v2/ticker/ltceur/',
         'BTC': 'https://www.bitstamp.net/api/v2/ticker/ltcbtc/'
+    },
+};
+
+const defaultOptions = {
+    reply_markup: {
+        keyboard: [
+            [{
+                text: '/get',
+                callback_data: '/get',
+            }].concat(Object.keys(bitsmapUrls).map(crypcoin=>{
+                return {
+                    text: '/'+crypcoin[0].toLowerCase()+Object.keys(bitsmapUrls[crypcoin])[0][0].toLowerCase(),
+                    callback_data: '/'+crypcoin[0].toLowerCase()+Object.keys(bitsmapUrls[crypcoin])[0][0].toLowerCase(),
+                };
+            }))
+        ],
+        resize_keyboard: true,
+        one_time_keyboard: true
     },
 };
 
@@ -121,4 +126,22 @@ function getBitcoinPrice(url, isNis) {
         });
     });
   }
+
+Object.keys(bitsmapUrls).map(crypcoin=>{
+    Object.keys(bitsmapUrls[crypcoin]).map(coin=>{
+        const regex = new RegExp('/['+crypcoin[0].toLowerCase()+']['+coin[0].toLowerCase()+']');
+        bot.onText(regex, function (msg) {
+            const fromId = msg.from.id;
+            const url = bitsmapUrls[crypcoin][coin];
+            const isNis = coin === 'NIS';
+            getBitcoinPrice(url, isNis).then((lastPrice) => {
+                bot.sendMessage(fromId, lastPrice, defaultOptions);
+            }).catch((error) => {
+                const errorMessage = 'An error has occured';
+                console.log(error);
+                bot.sendMessage(fromId, errorMessage, defaultOptions);
+            });
+        })
+    });
+});
   
